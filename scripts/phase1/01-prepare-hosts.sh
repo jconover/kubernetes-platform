@@ -59,9 +59,17 @@ print_info() {
 check_ssh_connectivity() {
     print_section "Checking SSH Connectivity"
 
+    local local_ip
+    local_ip=$(hostname -I | awk '{print $1}')
     for hostname in "${!HOSTS[@]}"; do
         ip=${HOSTS[$hostname]}
         echo -n "Checking SSH to $hostname ($ip)... "
+
+        # Skip SSH check if this is the local host
+        if [[ "$ip" == "$local_ip" ]]; then
+            print_success "(local) Skipped"
+            continue
+        fi
 
         if ssh -o ConnectTimeout=5 -o BatchMode=yes "$SSH_USER@$ip" "echo 'SSH OK'" >/dev/null 2>&1; then
             print_success "Connected"
