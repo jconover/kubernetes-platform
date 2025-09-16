@@ -23,7 +23,7 @@ declare -A HOSTS=(
 )
 
 # SSH user (adjust as needed)
-SSH_USER="ubuntu"
+SSH_USER="justin"
 
 print_header() {
     echo ""
