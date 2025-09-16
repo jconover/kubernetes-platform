@@ -225,7 +225,7 @@ install_kubernetes_tools() {
 
             # Install Kubernetes tools
             sudo apt-get update -qq
-            sudo apt-get install -y -qq kubelet=1.34.* kubeadm=1.34.* kubectl=1.34.*
+            sudo apt-get install -y -qq kubelet kubeadm kubectl
 
             # Hold packages to prevent automatic updates
             sudo apt-mark hold kubelet kubeadm kubectl
