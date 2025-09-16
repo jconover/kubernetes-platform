@@ -71,7 +71,7 @@ check_ssh_connectivity() {
             continue
         fi
 
-        if ssh -o ConnectTimeout=5 -o BatchMode=yes "$SSH_USER@$ip" "echo 'SSH OK'" >/dev/null 2>&1; then
+    if ssh -tt -o ConnectTimeout=5 -o BatchMode=yes "$SSH_USER@$ip" "echo 'SSH OK'" >/dev/null 2>&1; then
             print_success "Connected"
         else
             print_error "Cannot connect to $hostname ($ip)"
@@ -83,7 +83,7 @@ check_ssh_connectivity() {
 
 # Check and update hosts file on all nodes
 setup_hosts_file() {
-    print_section "Setting up /etc/hosts file on all nodes"
+    print_section "Setting up /etc/hosts file on all nodes"F
 
     # Create temporary hosts file
     cat > /tmp/k8s-hosts << EOF
@@ -98,7 +98,7 @@ EOF
         print_info "Updating hosts file on $hostname..."
 
         # Backup existing hosts file and add our entries
-        ssh "$SSH_USER@$ip" "
+    ssh -tt "$SSH_USER@$ip" "
             sudo cp /etc/hosts /etc/hosts.backup.$(date +%Y%m%d-%H%M%S)
 
             # Remove any existing k8s entries
@@ -128,7 +128,7 @@ setup_prerequisites() {
         ip=${HOSTS[$hostname]}
         print_info "Configuring prerequisites on $hostname..."
 
-        ssh "$SSH_USER@$ip" "
+    ssh -tt "$SSH_USER@$ip" "
             # Update system
             sudo apt-get update -qq
 
@@ -181,7 +181,7 @@ install_containerd() {
         ip=${HOSTS[$hostname]}
         print_info "Installing containerd on $hostname..."
 
-        ssh "$SSH_USER@$ip" "
+    ssh -tt "$SSH_USER@$ip" "
             # Add Docker repository
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
@@ -217,15 +217,15 @@ install_kubernetes_tools() {
         ip=${HOSTS[$hostname]}
         print_info "Installing Kubernetes tools on $hostname..."
 
-        ssh "$SSH_USER@$ip" "
+    ssh -tt "$SSH_USER@$ip" "
             # Add Kubernetes repository
-            curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.33/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+            curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.34/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 
-            echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+            echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.34/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
 
             # Install Kubernetes tools
             sudo apt-get update -qq
-            sudo apt-get install -y -qq kubelet=1.33.* kubeadm=1.33.* kubectl=1.33.*
+            sudo apt-get install -y -qq kubelet=1.34.* kubeadm=1.34.* kubectl=1.34.*
 
             # Hold packages to prevent automatic updates
             sudo apt-mark hold kubelet kubeadm kubectl
@@ -249,12 +249,12 @@ run_system_checks() {
         print_info "Running checks on $hostname..."
 
         # Run checks and capture output
-        ssh "$SSH_USER@$ip" "
+    ssh -tt "$SSH_USER@$ip" "
             echo '🔍 System Information:'
             echo '  OS: '$(lsb_release -d | cut -f2)
             echo '  Kernel: '$(uname -r)
-            echo '  Memory: '$(free -h | grep '^Mem:' | awk '{print \$2}')
-            echo '  Disk: '$(df -h / | tail -1 | awk '{print \$4}' | sed 's/G/ GB/')'available'
+            echo '  Memory: '$(free -h | grep '^Mem:' | awk '{print $2}')
+            echo '  Disk: '$(df -h / | tail -1 | awk '{print $4}' | sed 's/G/ GB/')'available'
 
             echo ''
             echo '✅ Prerequisite checks:'
