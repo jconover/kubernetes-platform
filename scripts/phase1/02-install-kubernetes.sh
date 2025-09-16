@@ -63,12 +63,15 @@ init_master_node() {
 
     # Create kubeadm init configuration
     cat > /tmp/kubeadm-init.yaml << EOF
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: ${MASTER_IP}
+  bindPort: 6443
 nodeRegistration:
   criSocket: unix:///var/run/containerd/containerd.sock
 ---
-apiVersion: kubeadm.k8s.io/v1beta3
+apiVersion: kubeadm.k8s.io/v1beta4
 kind: ClusterConfiguration
 kubernetesVersion: v${KUBE_VERSION}
 controlPlaneEndpoint: ${MASTER_IP}:6443
@@ -76,14 +79,11 @@ networking:
   podSubnet: ${POD_CIDR}
   serviceSubnet: ${SERVICE_CIDR}
 apiServer:
-  advertiseAddress: ${MASTER_IP}
   certSANs:
   - ${MASTER_IP}
   - ${MASTER_HOST}
   - localhost
   - 127.0.0.1
-controllerManager: {}
-scheduler: {}
 etcd:
   local:
     dataDir: /var/lib/etcd
