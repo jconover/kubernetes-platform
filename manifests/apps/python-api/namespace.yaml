@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: python-api
+  labels:
+    name: python-api
+    app.kubernetes.io/name: python-api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: kubernetes-platform

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: java-service
+  labels:
+    name: java-service
+    app.kubernetes.io/name: java-service
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: kubernetes-platform
