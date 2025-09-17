@@ -5,10 +5,11 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
+COPY package.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies (using npm install since we might not have package-lock.json)
+# For production builds with lock file, change to: npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy source code
 COPY . .
