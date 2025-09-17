@@ -30,8 +30,8 @@ spec:
         fsGroup: 1001
       containers:
       - name: java-service
-        image: java-service:1.0.0
-        imagePullPolicy: IfNotPresent
+        image: jconover/java-service:1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
           name: http

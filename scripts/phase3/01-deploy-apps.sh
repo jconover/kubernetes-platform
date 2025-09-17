@@ -17,7 +17,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 APPS_DIR="manifests/apps"
-DOCKER_REGISTRY=""  # Leave empty for local images, or set to your registry
+DOCKER_REGISTRY="jconover"  # Docker Hub username
+USE_DOCKER_HUB=true  # Set to false for local images
 
 print_header() {
     echo ""
@@ -91,10 +92,29 @@ check_prerequisites() {
     fi
 }
 
-# Build Docker images
+# Build and push Docker images to Docker Hub
 build_docker_images() {
-    print_section "Building Docker Images"
+    print_section "Building and Pushing Docker Images"
 
+    if [[ "$USE_DOCKER_HUB" == "true" ]]; then
+        print_info "Using Docker Hub registry: $DOCKER_REGISTRY"
+
+        if [[ -f "scripts/build-and-push.sh" ]]; then
+            print_info "Running Docker Hub build and push script..."
+            bash scripts/build-and-push.sh
+            print_success "Images built and pushed to Docker Hub"
+        else
+            print_warning "Docker Hub script not found - falling back to local build"
+            build_local_images
+        fi
+    else
+        print_info "Building images locally..."
+        build_local_images
+    fi
+}
+
+# Build Docker images locally (fallback)
+build_local_images() {
     if ! command -v docker &> /dev/null; then
         print_warning "Docker not available - skipping image builds"
         print_info "Make sure images are available in your registry"
@@ -125,8 +145,15 @@ build_docker_images() {
     print_success "All images built successfully"
 }
 
-# Load images to kind/minikube if using local cluster
+# Load images to cluster (only needed for local images)
 load_images_to_cluster() {
+    if [[ "$USE_DOCKER_HUB" == "true" ]]; then
+        print_section "Using Docker Hub Images"
+        print_info "Images will be pulled from Docker Hub registry"
+        print_success "No image loading required - using registry images"
+        return
+    fi
+
     print_section "Loading Images to Cluster"
 
     # Check if using kind
@@ -149,7 +176,16 @@ load_images_to_cluster() {
         return
     fi
 
-    print_info "Using standard cluster - images must be accessible via registry or pre-loaded on nodes"
+    # For standard kubeadm clusters, distribute images to all nodes
+    print_info "Detected standard cluster - distributing images to all nodes..."
+    if [[ -f "scripts/phase3/load-images-to-nodes.sh" ]]; then
+        bash scripts/phase3/load-images-to-nodes.sh
+        print_success "Images distributed to all cluster nodes"
+    else
+        print_warning "Image distribution script not found"
+        print_info "Images must be accessible via registry or manually loaded on nodes"
+        print_info "For kubeadm clusters, ensure images are available on all worker nodes"
+    fi
 }
 
 # Deploy Python API
@@ -472,6 +508,12 @@ main() {
 
     print_section "Application Deployment Complete!"
     print_success "🎉 All applications have been deployed!"
+
+    if [[ "$USE_DOCKER_HUB" == "true" ]]; then
+        print_info "🐳 Images pulled from Docker Hub: $DOCKER_REGISTRY/*"
+        print_info "🔄 To update images, run: ./scripts/build-and-push.sh"
+    fi
+
     print_info "📱 Frontend URL: http://<node-ip>:30080"
     print_info "🔍 Use test scripts in ./scripts/ to verify applications"
     print_info "📊 Check Grafana dashboards for application metrics"

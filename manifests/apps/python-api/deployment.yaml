@@ -30,8 +30,8 @@ spec:
         fsGroup: 1001
       containers:
       - name: python-api
-        image: python-api:1.0.0
-        imagePullPolicy: IfNotPresent
+        image: jconover/python-api:1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 8000
           name: http

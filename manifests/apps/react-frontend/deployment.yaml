@@ -26,8 +26,8 @@ spec:
         fsGroup: 1001
       containers:
       - name: react-frontend
-        image: react-frontend:1.0.0
-        imagePullPolicy: IfNotPresent
+        image: jconover/react-frontend:1.0.0
+        imagePullPolicy: Always
         ports:
         - containerPort: 3000
           name: http
