@@ -107,7 +107,7 @@ curl http://localhost:8080/actuator/health
 
 ### Docker Image
 - **Multi-stage build**: Separate build and runtime stages
-- **Base Image**: OpenJDK 17 JRE Slim
+- **Base Image**: Amazon Corretto 17 Alpine
 - **Security**: Non-root user, minimal attack surface
 - **Optimization**: JVM tuning for containers
 - **Health Checks**: Built-in health endpoint monitoring

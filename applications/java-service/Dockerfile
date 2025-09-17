@@ -1,5 +1,5 @@
 # Multi-stage build for Java application
-FROM maven:3.9-openjdk-17-slim AS builder
+FROM maven:3.9-amazoncorretto-17 AS builder
 
 # Set working directory
 WORKDIR /app
@@ -17,13 +17,13 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Production stage
-FROM amazoncorretto:8u462-al2023-jre AS production
+FROM amazoncorretto:17-alpine AS production
 
-# Install curl for health checks
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+# Install curl for health checks (Alpine uses apk)
+RUN apk add --no-cache curl
 
-# Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+# Create non-root user (Alpine specific commands)
+RUN addgroup -g 1001 -S appuser && adduser -u 1001 -S appuser -G appuser
 
 # Set working directory
 WORKDIR /app
