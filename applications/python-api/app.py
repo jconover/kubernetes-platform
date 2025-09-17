@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST, CollectorRegistry, REGISTRY
 from fastapi.responses import Response
 import uvicorn
 import os
@@ -29,9 +29,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Prometheus metrics
-REQUEST_COUNT = Counter('http_requests_total', 'Total HTTP requests', ['method', 'endpoint', 'status'])
-REQUEST_DURATION = Histogram('http_request_duration_seconds', 'HTTP request duration in seconds', ['method', 'endpoint'])
+# Create custom registry to avoid conflicts
+custom_registry = CollectorRegistry()
+
+# Prometheus metrics with custom registry
+REQUEST_COUNT = Counter(
+    'http_requests_total',
+    'Total HTTP requests',
+    ['method', 'endpoint', 'status'],
+    registry=custom_registry
+)
+REQUEST_DURATION = Histogram(
+    'http_request_duration_seconds',
+    'HTTP request duration in seconds',
+    ['method', 'endpoint'],
+    registry=custom_registry
+)
 
 # Middleware for metrics collection
 @app.middleware("http")
@@ -161,7 +174,7 @@ async def simulate_error():
 @app.get("/metrics")
 async def metrics():
     """Prometheus metrics endpoint"""
-    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+    return Response(generate_latest(custom_registry), media_type=CONTENT_TYPE_LATEST)
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 8000))
